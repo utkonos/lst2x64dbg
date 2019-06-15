@@ -1,6 +1,4 @@
 # lst2x64dbg
-Extract labels from IDA .lst file and export x64dbg database.
-
 This script extracts all the labels found in the LST file that is given as
 the script's single argument. An x64dbg database is created in the current
 directory based on the extracted labels.
