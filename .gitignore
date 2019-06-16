@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Local data
+*.csv
+*.lst
+
+# Output
+*.dd32
