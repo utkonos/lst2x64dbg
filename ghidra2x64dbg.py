@@ -39,6 +39,8 @@ labels = list()
 with open(csv_file) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
+        if re.match(r'External\[[0-9a-f]+\]', row['Location']):
+            continue
         stripped = row['Location'].lstrip('0')
         hex_int = int(stripped, 16)
         offset = hex(hex_int - int(args.imagebase, 16))
