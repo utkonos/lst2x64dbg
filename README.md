@@ -20,6 +20,8 @@ In the symbol table window that opens, sort the data by the **Location** column.
 symbols that are *not* external locations. With the desired symbols selected, right click and select:
 **Export -> Export to CSV...**
 
+**NOTE: If you happen to select external locations, they will be ignored.**
+
 ![Symbol Table](/images/symbol_table.png)
 
 Name this file `<module_name>.csv`
