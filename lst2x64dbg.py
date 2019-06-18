@@ -13,7 +13,6 @@ Todo:
     * Convert to package with console script
 """
 import argparse
-import copy
 import json
 import operator
 import pathlib
