@@ -40,7 +40,9 @@ labels = list()
 with open(csv_file) as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
-        if re.match(r'External\[[0-9a-f]+\]', row['Location']):
+        if re.match(r'External\[[0-9a-f]{8}\]', row['Location']):
+            continue
+        if row['Name'] == 'entry' or re.match(r'FUN_[0-9a-f]{8}', row['Name']) or re.match(r'Ordinal_\d+', row['Name']):
             continue
         stripped = row['Location'].lstrip('0')
         hex_int = int(stripped, 16)
