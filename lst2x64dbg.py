@@ -49,9 +49,11 @@ collapsed = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) +; +\[\d+ BYTES: COLLAPSED 
 
 labels_raw = set(public) | set(proc_near) | set(collapsed)
 
+entry_point_labels = ['DllEntryPoint', 'EntryPoint']
+
 labels = list()
 for address, label in labels_raw:
-    if re.match('sub_[0-9A-F]{8}', label):
+    if re.match('sub_[0-9A-F]{8}', label) or label in entry_point_labels:
         continue
     stripped = address.lstrip('0')
     hex_int = int(stripped, 16)
