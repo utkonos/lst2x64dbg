@@ -75,11 +75,11 @@ if x64dbg_db_file.exists():
         x64dbg_db_raw = fh.read()
     x64dbg_db_old = json.loads(x64dbg_db_raw)
 
-    x64dbg_db_new = copy.copy(x64dbg_db_old)
+    x64dbg_db_new = copy.copy(x64dbg_db_old['labels'])
 
     for entry_outer in x64dbg_db:
         exists = False
-        for entry_inner in x64dbg_db_old:
+        for entry_inner in x64dbg_db_old['labels']:
             if entry_outer['address'] == entry_inner['address']:
                 exists = True
         if not exists:
