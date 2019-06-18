@@ -13,6 +13,7 @@ Todo:
     * Convert to package with console script
 """
 import argparse
+import copy
 import json
 import operator
 import pathlib
@@ -68,6 +69,23 @@ x64dbg_db = {'labels': labels}
 
 here = pathlib.Path.cwd()
 x64dbg_db_file = here.joinpath('{}.dd32'.format(lst_file.stem))
+
+if x64dbg_db_file.exists():
+    with open(x64dbg_db_file, 'r') as fh:
+        x64dbg_db_raw = fh.read()
+    x64dbg_db_old = json.loads(x64dbg_db_raw)
+
+    x64dbg_db_new = copy.copy(x64dbg_db_old)
+
+    for entry_outer in x64dbg_db:
+        exists = False
+        for entry_inner in x64dbg_db_old:
+            if entry_outer['address'] == entry_inner['address']:
+                exists = True
+        if not exists:
+            x64dbg_db_new.append(entry_outer)
+
+    x64dbg_db = x64dbg_db_new
 
 if args.pretty:
     x64dbg_db_str = json.dumps(x64dbg_db, sort_keys=True, indent=4)
