@@ -13,7 +13,9 @@ Todo:
     * Convert to package with console script
 """
 import argparse
+import copy
 import json
+import operator
 import pathlib
 import re
 import sys
@@ -41,17 +43,27 @@ if args.module:
 else:
     module_name = '{}.exe'.format(lst_file.stem)
 
-labels_raw = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) {17}public (?P<label>\w+)$', lst_data, flags=re.M | re.A)
+public = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) +public +(?P<label>\w+)$', lst_data, flags=re.M | re.A)
+proc_near = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) +(?P<label>\w+) +proc near.*$', lst_data, flags=re.M | re.A)
+collapsed = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) +; +\[\d+ BYTES: COLLAPSED FUNCTION (?P<label>[\w()]+)\. PRESS CTRL-NUMPAD\+ TO EXPAND\].*$', lst_data, flags=re.M | re.A)
+
+labels_raw = set(public) | set(proc_near) | set(collapsed)
+
 labels = list()
 for address, label in labels_raw:
+    if re.match('sub_[0-9A-F]{8}', label):
+        continue
     stripped = address.lstrip('0')
     hex_int = int(stripped, 16)
-    offset = hex(hex_int - imagebase)
     label_entry = {'module': module_name,
-                   'address': '0x{}'.format(offset[2:].upper()),
+                   'address': hex_int - imagebase,
                    'manual': False,
-                   'text': label}
+                   'text': re.sub(r'\W', '_', label, flags=re.A)}
     labels.append(label_entry)
+
+labels = sorted(labels, key=operator.itemgetter('address'))
+for label in labels:
+    label['address'] = '0x{}'.format(hex(label['address'])[2:].upper())
 
 x64dbg_db = {'labels': labels}
 

@@ -15,6 +15,7 @@ Todo:
 import argparse
 import csv
 import json
+import operator
 import pathlib
 import re
 import sys
@@ -43,13 +44,16 @@ with open(csv_file) as csvfile:
             continue
         stripped = row['Location'].lstrip('0')
         hex_int = int(stripped, 16)
-        offset = hex(hex_int - int(args.imagebase, 16))
         label = re.sub(r'\W', '_', row['Name'], flags=re.A)
         label_entry = {'module': module_name,
-                       'address': '0x{}'.format(offset[2:].upper()),
+                       'address': hex_int - int(args.imagebase, 16),
                        'manual': False,
                        'text': label}
         labels.append(label_entry)
+
+labels = sorted(labels, key=operator.itemgetter('address'))
+for label in labels:
+    label['address'] = '0x{}'.format(hex(label['address'])[2:].upper())
 
 x64dbg_db = {'labels': labels}
 
