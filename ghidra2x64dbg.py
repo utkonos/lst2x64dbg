@@ -43,7 +43,7 @@ with open(csv_file) as csvfile:
     for row in reader:
         if re.match(r'External\[[0-9a-f]{8}\]', row['Location']):
             continue
-        if row['Name'] == 'entry' or re.match(r'FUN_[0-9a-f]{8}', row['Name']) or re.match(r'Ordinal_\d+', row['Name']):
+        if row['Name'] == 'entry' or re.match(r'(?:thunk_)?FUN_[0-9a-f]{8}', row['Name']) or re.match(r'Ordinal_\d+', row['Name']):
             continue
         stripped = row['Location'].lstrip('0')
         hex_int = int(stripped, 16)
