@@ -43,9 +43,9 @@ if args.module:
 else:
     module_name = '{}.exe'.format(lst_file.stem)
 
-public = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) +public +(?P<label>\w+)$', lst_data, flags=re.M | re.A)
-proc_near = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) +(?P<label>\w+) +proc near.*$', lst_data, flags=re.M | re.A)
-collapsed = re.findall(r'^.+:(?P<offset>[0-9A-F]{8}) +; +\[\d+ BYTES: COLLAPSED FUNCTION (?P<label>[\w()]+)\. PRESS CTRL-NUMPAD\+ TO EXPAND\].*$', lst_data, flags=re.M | re.A)
+public = re.findall(r'^.+:(?P<offset>(?:[0-9A-F]{8}|[0-9A-F]{16})) +public +(?P<label>\w+)$', lst_data, flags=re.M | re.A)
+proc_near = re.findall(r'^.+:(?P<offset>(?:[0-9A-F]{8}|[0-9A-F]{16})) +(?P<label>\w+) +proc near.*$', lst_data, flags=re.M | re.A)
+collapsed = re.findall(r'^.+:(?P<offset>(?:[0-9A-F]{8}|[0-9A-F]{16})) +; +\[\d+ BYTES: COLLAPSED FUNCTION (?P<label>[\w()]+)\. PRESS CTRL-NUMPAD\+ TO EXPAND\].*$', lst_data, flags=re.M | re.A)
 
 labels_raw = set(public) | set(proc_near) | set(collapsed)
 
@@ -53,7 +53,7 @@ entry_point_labels = ['DllEntryPoint', 'EntryPoint', 'start']
 
 labels = list()
 for address, label in labels_raw:
-    if re.match('sub_[0-9A-F]{6,8}', label) or label in entry_point_labels:
+    if re.match('sub_[0-9A-F]{6,9}', label) or label in entry_point_labels:
         continue
     stripped = address.lstrip('0')
     hex_int = int(stripped, 16)
