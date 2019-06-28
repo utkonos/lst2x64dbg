@@ -23,6 +23,7 @@ import sys
 parser = argparse.ArgumentParser(description='Extract labels from IDA .lst file and export x64dbg database.')
 parser.add_argument('lst', metavar='LST', help='Filename or path of target LST file.')
 parser.add_argument('-p', '--pretty', action='store_true', help='Pretty print the database JSON.')
+parser.add_argument('-6', '--64bit', action='store_true', help='Sample is 64bit.')
 parser.add_argument('-m', '--module', help='Specify the module name.')
 args = parser.parse_args()
 
@@ -42,6 +43,8 @@ if args.module:
     module_name = args.module
 else:
     module_name = '{}.exe'.format(lst_file.stem)
+
+six_four = re.search(r'Format      : Portable executable for AMD64 \(PE\)', lst_data, flags=re.M)
 
 public = re.findall(r'^.+:(?P<offset>(?:[0-9A-F]{8}|[0-9A-F]{16})) +public +(?P<label>\w+)$', lst_data, flags=re.M | re.A)
 proc_near = re.findall(r'^.+:(?P<offset>(?:[0-9A-F]{8}|[0-9A-F]{16})) +(?P<label>\w+) +proc near.*$', lst_data, flags=re.M | re.A)
@@ -69,8 +72,10 @@ for label in labels:
 
 x64dbg_db = {'labels': labels}
 
+extension = '{}.dd64'.format(lst_file.stem) if six_four else '{}.dd32'.format(lst_file.stem)
+
 here = pathlib.Path.cwd()
-x64dbg_db_file = here.joinpath('{}.dd32'.format(lst_file.stem))
+x64dbg_db_file = here.joinpath(extension)
 
 if x64dbg_db_file.exists():
     with open(x64dbg_db_file, 'r') as fh:
