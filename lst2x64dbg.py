@@ -49,7 +49,7 @@ collapsed = re.findall(r'^.+:(?P<offset>(?:[0-9A-F]{8}|[0-9A-F]{16})) +; +\[\d+ 
 
 labels_raw = set(public) | set(proc_near) | set(collapsed)
 
-entry_point_labels = ['DllEntryPoint', 'EntryPoint', 'start', 'WinMain']
+entry_point_labels = ['DllEntryPoint', 'EntryPoint', 'start', 'WinMain', 'StartAddress']
 
 labels = list()
 for address, label in labels_raw:
