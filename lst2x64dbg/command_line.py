@@ -12,6 +12,64 @@ import re
 import sys
 
 
+def get_input(filename, module):
+    """Placeholder."""
+    input_file = pathlib.Path(filename)
+    if not input_file.exists():
+        sys.exit('ERROR: File `{}` does not exist'.format(input_file.name))
+
+    if module:
+        module_name = module
+    else:
+        module_name = '{}.exe'.format(input_file.stem)
+
+    return input_file, module_name
+
+
+def export_db(labels, input_file, six_four, pretty, module):
+    """Placeholder."""
+    labels = sorted(labels, key=operator.itemgetter('address'))
+    for label in labels:
+        label['address'] = '0x{}'.format(hex(label['address'])[2:].upper())
+
+    x64dbg_db = {'labels': labels}
+
+    extension = '{}.dd64'.format(input_file.stem) if six_four else '{}.dd32'.format(input_file.stem)
+
+    here = pathlib.Path.cwd()
+    x64dbg_db_file = here.joinpath(extension)
+
+    if x64dbg_db_file.exists():
+        with open(x64dbg_db_file, 'r') as fh:
+            x64dbg_db_raw = fh.read()
+        x64dbg_db_old = json.loads(x64dbg_db_raw)['labels']
+
+        x64dbg_db_new = copy.copy(x64dbg_db_old)
+
+        for entry_outer in x64dbg_db['labels']:
+            exists = False
+            for entry_inner in x64dbg_db_old:
+                if entry_outer['address'] == entry_inner['address']:
+                    exists = True
+            if not exists:
+                x64dbg_db_new.append(entry_outer)
+
+        x64dbg_db = {'labels': x64dbg_db_new}
+
+    if pretty:
+        x64dbg_db_str = json.dumps(x64dbg_db, sort_keys=True, indent=4)
+    else:
+        x64dbg_db_str = json.dumps(x64dbg_db)
+
+    with open(x64dbg_db_file, 'w') as fh:
+        fh.write(x64dbg_db_str)
+
+    print('Exported x64dbg database: {}'.format(x64dbg_db_file.name))
+    if module:
+        print('Module name: {}'.format(module))
+    sys.exit()
+
+
 def lst2x64dbg():
     """Extract labels from IDA .lst and export to x64dbg database.
 
@@ -30,22 +88,15 @@ def lst2x64dbg():
     parser.add_argument('-m', '--module', help='Specify the module name.')
     args = parser.parse_args()
 
-    lst_file = pathlib.Path(args.lst)
-    if not lst_file.exists():
-        sys.exit('ERROR: File `{}` does not exist'.format(lst_file.name))
+    input_file, module_name = get_input(args.lst, args.module)
 
-    with open(lst_file, 'r') as fh:
+    with open(input_file, 'r') as fh:
         lst_data = fh.read()
 
     match = re.search('Imagebase +: (?P<imagebase>[0-9A-F]+$)', lst_data, flags=re.M)
     if not match:
         sys.exit('ERROR: Imagebase not found')
     imagebase = int(match.group('imagebase'), 16)
-
-    if args.module:
-        module_name = args.module
-    else:
-        module_name = '{}.exe'.format(lst_file.stem)
 
     six_four = re.search(r'Format      : Portable executable for AMD64 \(PE\)', lst_data, flags=re.M)
 
@@ -69,46 +120,7 @@ def lst2x64dbg():
                        'text': re.sub(r'\W', '_', label, flags=re.A)}
         labels.append(label_entry)
 
-    labels = sorted(labels, key=operator.itemgetter('address'))
-    for label in labels:
-        label['address'] = '0x{}'.format(hex(label['address'])[2:].upper())
-
-    x64dbg_db = {'labels': labels}
-
-    extension = '{}.dd64'.format(lst_file.stem) if six_four else '{}.dd32'.format(lst_file.stem)
-
-    here = pathlib.Path.cwd()
-    x64dbg_db_file = here.joinpath(extension)
-
-    if x64dbg_db_file.exists():
-        with open(x64dbg_db_file, 'r') as fh:
-            x64dbg_db_raw = fh.read()
-        x64dbg_db_old = json.loads(x64dbg_db_raw)['labels']
-
-        x64dbg_db_new = copy.copy(x64dbg_db_old)
-
-        for entry_outer in x64dbg_db['labels']:
-            exists = False
-            for entry_inner in x64dbg_db_old:
-                if entry_outer['address'] == entry_inner['address']:
-                    exists = True
-            if not exists:
-                x64dbg_db_new.append(entry_outer)
-
-        x64dbg_db = {'labels': x64dbg_db_new}
-
-    if args.pretty:
-        x64dbg_db_str = json.dumps(x64dbg_db, sort_keys=True, indent=4)
-    else:
-        x64dbg_db_str = json.dumps(x64dbg_db)
-
-    with open(x64dbg_db_file, 'w') as fh:
-        fh.write(x64dbg_db_str)
-
-    print('Exported x64dbg database: {}'.format(x64dbg_db_file.name))
-    if args.module:
-        print('Module name: {}'.format(args.module))
-    sys.exit()
+    export_db(labels, input_file, six_four, args.pretty, args.module)
 
 
 def ghidra2x64dbg():
@@ -125,20 +137,14 @@ def ghidra2x64dbg():
     parser.add_argument('csv', metavar='CSV', help='Filename or path of target CSV file.')
     parser.add_argument('-i', '--imagebase', help='Specify the imagebase value.', required=True)
     parser.add_argument('-p', '--pretty', action='store_true', help='Pretty print the database JSON.')
+    parser.add_argument('-6', '--64bit', action='store_true', help='Sample is 64bit.')
     parser.add_argument('-m', '--module', help='Specify the module name.')
     args = parser.parse_args()
 
-    csv_file = pathlib.Path(args.csv)
-    if not csv_file.exists():
-        sys.exit('ERROR: File `{}` does not exist'.format(csv_file.name))
-
-    if args.module:
-        module_name = args.module
-    else:
-        module_name = '{}.exe'.format(csv_file.stem)
+    input_file, module_name = get_input(args.csv, args.module)
 
     labels = list()
-    with open(csv_file) as csvfile:
+    with open(input_file) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if re.match(r'External\[[0-9a-f]{8}\]', row['Location']):
@@ -154,41 +160,4 @@ def ghidra2x64dbg():
                            'text': label}
             labels.append(label_entry)
 
-    labels = sorted(labels, key=operator.itemgetter('address'))
-    for label in labels:
-        label['address'] = '0x{}'.format(hex(label['address'])[2:].upper())
-
-    x64dbg_db = {'labels': labels}
-
-    here = pathlib.Path.cwd()
-    x64dbg_db_file = here.joinpath('{}.dd32'.format(csv_file.stem))
-
-    if x64dbg_db_file.exists():
-        with open(x64dbg_db_file, 'r') as fh:
-            x64dbg_db_raw = fh.read()
-        x64dbg_db_old = json.loads(x64dbg_db_raw)['labels']
-
-        x64dbg_db_new = copy.copy(x64dbg_db_old)
-
-        for entry_outer in x64dbg_db['labels']:
-            exists = False
-            for entry_inner in x64dbg_db_old:
-                if entry_outer['address'] == entry_inner['address']:
-                    exists = True
-            if not exists:
-                x64dbg_db_new.append(entry_outer)
-
-        x64dbg_db = {'labels': x64dbg_db_new}
-
-    if args.pretty:
-        x64dbg_db_str = json.dumps(x64dbg_db, sort_keys=True, indent=4)
-    else:
-        x64dbg_db_str = json.dumps(x64dbg_db)
-
-    with open(x64dbg_db_file, 'w') as fh:
-        fh.write(x64dbg_db_str)
-
-    print('Exported x64dbg database: {}'.format(x64dbg_db_file.name))
-    if args.module:
-        print('Module name: {}'.format(args.module))
-    sys.exit()
+    export_db(labels, input_file, six_four, args.pretty, args.module)
