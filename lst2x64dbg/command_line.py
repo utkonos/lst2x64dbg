@@ -84,7 +84,6 @@ def lst2x64dbg():
     parser = argparse.ArgumentParser(description='Extract labels from IDA .lst file and export x64dbg database.')
     parser.add_argument('lst', metavar='LST', help='Filename or path of target LST file.')
     parser.add_argument('-p', '--pretty', action='store_true', help='Pretty print the database JSON.')
-    parser.add_argument('-6', '--64bit', action='store_true', help='Sample is 64bit.')
     parser.add_argument('-m', '--module', help='Specify the module name.')
     args = parser.parse_args()
 
@@ -137,11 +136,13 @@ def ghidra2x64dbg():
     parser.add_argument('csv', metavar='CSV', help='Filename or path of target CSV file.')
     parser.add_argument('-i', '--imagebase', help='Specify the imagebase value.', required=True)
     parser.add_argument('-p', '--pretty', action='store_true', help='Pretty print the database JSON.')
-    parser.add_argument('-6', '--64bit', action='store_true', help='Sample is 64bit.')
+    parser.add_argument('-6', '--x64bit', action='store_true', help='Sample is 64bit.')
     parser.add_argument('-m', '--module', help='Specify the module name.')
     args = parser.parse_args()
 
     input_file, module_name = get_input(args.csv, args.module)
+
+    six_four = args.x64bit
 
     labels = list()
     with open(input_file) as csvfile:
