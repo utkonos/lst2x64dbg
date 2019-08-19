@@ -96,7 +96,7 @@ def lst2x64dbg():
     if not match:
         sys.exit('ERROR: Imagebase not found')
     imagebase = int(match.group('imagebase'), 16)
-    print('Using imagebase: {}'.format(imagebase))
+    print('Using imagebase: {}'.format(match.group('imagebase')))
 
     six_four = re.search(r'Format      : Portable executable for AMD64 \(PE\)', lst_data, flags=re.M)
 
