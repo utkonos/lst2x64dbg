@@ -17,8 +17,8 @@ with here.joinpath('README.md').open(encoding='utf-8') as fh:
 
 setup(
     name='lst2x64dbg',
-    version='1.0.0',
-    description='Extract labels from IDA .lst or Ghidra .csv file and export x64dbg database.',
+    version='1.1.0',
+    description='Extract labels from IDA .lst, Ghidra .csv file, and radare2 main and export x64dbg database.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/utkonos/lst2x64dbg',
@@ -35,7 +35,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3 :: Only',
     ],
-    keywords='x64dbg ida ghidra reverseengineering debugger',
+    keywords='x64dbg ida idafree ghidra radare2 reverseengineering debugger',
     packages=find_packages(exclude=['images']),
     python_requires='>=3.7',
     entry_points={

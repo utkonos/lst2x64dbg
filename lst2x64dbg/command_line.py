@@ -12,29 +12,25 @@ import re
 import sys
 
 
-def get_input(filename, module):
-    """Placeholder."""
-    input_file = pathlib.Path(filename)
-    if not input_file.exists():
-        sys.exit('ERROR: File `{}` does not exist'.format(input_file.name))
+def _open_input(filename):
+    """Check that the input file exists and return pathlib object."""
+    here = pathlib.Path().cwd()
+    input_path = here.joinpath(filename)
+    if not input_path.exists():
+        sys.exit('ERROR: File `{}` does not exist'.format(filename))
 
-    if module:
-        module_name = module
-    else:
-        module_name = '{}.exe'.format(input_file.stem)
-
-    return input_file, module_name
+    return input_path
 
 
-def export_db(labels, input_file, six_four, pretty, module):
-    """Placeholder."""
+def _export_db(labels, input_stem, six_four, pretty, module):
+    """Export the list of labels to an x64dbg database on disk."""
     labels = sorted(labels, key=operator.itemgetter('address'))
     for label in labels:
         label['address'] = '0x{}'.format(hex(label['address'])[2:].upper())
 
     x64dbg_db = {'labels': labels}
 
-    extension = '{}.dd64'.format(input_file.stem) if six_four else '{}.dd32'.format(input_file.stem)
+    extension = '{}.dd64'.format(input_stem) if six_four else '{}.dd32'.format(input_stem)
 
     here = pathlib.Path.cwd()
     x64dbg_db_file = here.joinpath(extension)
@@ -84,12 +80,22 @@ def lst2x64dbg():
     parser = argparse.ArgumentParser(description='Extract labels from IDA .lst file and export x64dbg database.')
     parser.add_argument('lst', metavar='LST', help='Filename or path of target LST file.')
     parser.add_argument('-p', '--pretty', action='store_true', help='Pretty print the database JSON.')
+    parser.add_argument('-d', '--dll', action='store_true', help='File is a DLL.')
     parser.add_argument('-m', '--module', help='Specify the module name.')
+    parser.add_argument('-r', '--main', help='Add main from radare2.')
     args = parser.parse_args()
 
-    input_file, module_name = get_input(args.lst, args.module)
+    input_path = _open_input(args.lst)
 
-    with open(input_file, 'r') as fh:
+    if args.module:
+        module_name = args.module
+    else:
+        if args.dll:
+            module_name = '{}.dll'.format(input_path.stem)
+        else:
+            module_name = '{}.exe'.format(input_path.stem)
+
+    with open(input_path, 'r') as fh:
         lst_data = fh.read()
 
     match = re.search('Imagebase +: (?P<imagebase>[0-9A-F]+$)', lst_data, flags=re.M)
@@ -120,7 +126,16 @@ def lst2x64dbg():
                        'text': re.sub(r'\W', '_', label, flags=re.A)}
         labels.append(label_entry)
 
-    export_db(labels, input_file, six_four, args.pretty, args.module)
+    if args.main:
+        stripped = args.main.replace('0x', '')
+        hex_int = int(stripped, 16)
+        label_entry = {'module': module_name,
+                       'address': hex_int - imagebase,
+                       'manual': False,
+                       'text': 'main'}
+        labels.append(label_entry)
+
+    _export_db(labels, input_path.stem, six_four, args.pretty, module_name)
 
 
 def ghidra2x64dbg():
@@ -138,15 +153,25 @@ def ghidra2x64dbg():
     parser.add_argument('-i', '--imagebase', help='Specify the imagebase value.', required=True)
     parser.add_argument('-p', '--pretty', action='store_true', help='Pretty print the database JSON.')
     parser.add_argument('-6', '--x64bit', action='store_true', help='Sample is 64bit.')
+    parser.add_argument('-d', '--dll', action='store_true', help='File is a DLL.')
     parser.add_argument('-m', '--module', help='Specify the module name.')
+    parser.add_argument('-r', '--main', help='Add main from radare2.')
     args = parser.parse_args()
 
-    input_file, module_name = get_input(args.csv, args.module)
+    input_path = _open_input(args.csv)
+
+    if args.module:
+        module_name = args.module
+    else:
+        if args.dll:
+            module_name = '{}.dll'.format(input_path.stem)
+        else:
+            module_name = '{}.exe'.format(input_path.stem)
 
     six_four = args.x64bit
 
     labels = list()
-    with open(input_file) as csvfile:
+    with open(input_path) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             if re.match(r'External\[[0-9a-f]{8}\]', row['Location']):
@@ -162,4 +187,13 @@ def ghidra2x64dbg():
                            'text': label}
             labels.append(label_entry)
 
-    export_db(labels, input_file, six_four, args.pretty, args.module)
+    if args.main:
+        stripped = args.main.replace('0x', '')
+        hex_int = int(stripped, 16)
+        label_entry = {'module': module_name,
+                       'address': hex_int - int(args.imagebase, 16),
+                       'manual': False,
+                       'text': 'main'}
+        labels.append(label_entry)
+
+    _export_db(labels, input_path.stem, six_four, args.pretty, module_name)
