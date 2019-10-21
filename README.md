@@ -34,3 +34,13 @@ The imagebase value can be found at the very top of the disassembly panel in the
 It's part of the DOS header.
 
 ![Image Base](/images/imagebase.png)
+
+# Support for radare2
+Both commands now support inclusion of the location for main() as detected by
+radare2. Just add `-r` or `-main` to either command like this:
+
+    $ lst2x64dbg -m 0x0040a53a sample.lst
+
+Just cut and paste the virtual address for main from Cutter's UI or from radare2 command line.
+
+![Main](/images/radare2_main.png)
