@@ -174,7 +174,7 @@ def ghidra2x64dbg():
     with open(input_path) as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            if re.match(r'External\[[0-9a-f]{8}\]', row['Location']):
+            if re.match(r'External\[(?:[0-9a-f]{8}|[0-9a-f]{16})\]', row['Location']):
                 continue
             if row['Name'] == 'entry' or re.match(r'(?:thunk_)?FUN_[0-9a-f]{8}', row['Name']) or re.match(r'Ordinal_\d+', row['Name']):
                 continue
