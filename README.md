@@ -35,6 +35,12 @@ It's part of the DOS header.
 
 ![Image Base](/images/imagebase.png)
 
+## Configuration for More Labels
+
+Ghidra has one analysis option that is off by default that can provide more labels for code in a sample in certain situations. This option, `WindowsPE x86 Propagate External Parameters` is found in the Analysis Options window when a sample is first opened in the CodeBrowser tool.
+
+![Analysis Options](/images/ghidra_more_labels.png)
+
 # Support for radare2
 Both commands now support inclusion of the location for main() as detected by
 radare2. Just add `-r` or `-main` to either command like this:
