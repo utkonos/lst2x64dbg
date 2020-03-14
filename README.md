@@ -45,7 +45,7 @@ Ghidra has one analysis option that is off by default that can provide more labe
 Both commands now support inclusion of the location for main() as detected by
 radare2. Just add `-r` or `-main` to either command like this:
 
-    $ lst2x64dbg -m 0x0040a53a sample.lst
+    $ lst2x64dbg -r 0x0040a53a sample.lst
 
 Just cut and paste the virtual address for main from Cutter's UI or from radare2 command line.
 
