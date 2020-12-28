@@ -41,6 +41,23 @@ Ghidra has one analysis option that is off by default that can provide more labe
 
 ![Analysis Options](/images/ghidra_more_labels.png)
 
+# binja2x64dbg
+This command extracts all the labels found in a Binary Ninja bnida JSON file given as a single argument.
+An x64dbg database is created in the current directory based on the extracted labels. The imagebase value
+must be supplied.
+
+To generate a bnida file from Binary Ninja, one must first install the plugin according to the instructions:
+
+https://zznop.github.io/bnida/
+
+Once the executable is loaded in Binary Ninja, navigate to the **Tools** menu and select **bnida: Export analysis data**.
+
+Name this file `<module_name>.json`
+
+## Example
+
+    $ binja2x64dbg -i 400000 sample.json
+
 # Support for radare2
 Both commands now support inclusion of the location for main() as detected by
 radare2. Just add `-r` or `-main` to either command like this:
