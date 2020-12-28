@@ -52,6 +52,8 @@ https://zznop.github.io/bnida/
 
 Once the executable is loaded in Binary Ninja, navigate to the **Tools** menu and select **bnida: Export analysis data**.
 
+![BinaryNinja](/images/binja.png)
+
 Name this file `<module_name>.json`
 
 ## Example
