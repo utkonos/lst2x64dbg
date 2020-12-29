@@ -83,3 +83,14 @@ radare2. Just add `-r` or `-main` to either command like this:
 Just cut and paste the virtual address for main from Cutter's UI or from radare2 command line.
 
 ![Main](/images/radare2_main.png)
+
+# Workflow Notes
+Each of these tools will check the current directory for an x64dbg database that was created by a previous run of one of
+the tools. Any offset from that database that already has a label will not be changed by a subsequent run of any of the
+tools. In other words, each tool expands the list of labels, but does not overwrite any labels that already exist.
+
+If you have manually created labels, it is recommended to only create them in one disassembler. Also, make that disassembler's
+output the very first to be processed by one of the above tools. This way all your custom labels are guaranteed to exist
+in the new x64dbg database.
+
+In a future iteration of this software there will be a way to deconflict at the merge step of the processing.
