@@ -6,6 +6,7 @@ This module contains command line scripts for lst2x64dbg, ghidra2x64dbg, and bin
 import argparse
 import copy
 import csv
+import io
 import json
 import operator
 import pathlib
@@ -98,7 +99,7 @@ def lst2x64dbg():
         else:
             module_name = '{}.exe'.format(input_path.stem)
 
-    with open(input_path, 'r') as fh:
+    with io.open(input_path, 'r', encoding='windows-1252') as fh:
         lst_data = fh.read()
 
     match = re.search('Imagebase +: (?P<imagebase>[0-9A-F]+$)', lst_data, flags=re.M)
