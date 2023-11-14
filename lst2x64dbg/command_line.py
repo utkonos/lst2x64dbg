@@ -99,8 +99,12 @@ def lst2x64dbg():
         else:
             module_name = '{}.exe'.format(input_path.stem)
 
-    with io.open(input_path, 'r', encoding='windows-1252') as fh:
-        lst_data = fh.read()
+    try:
+        with io.open(input_path, 'r', encoding='windows-1252') as fh:
+            lst_data = fh.read()
+    except UnicodeDecodeError:
+        with io.open(input_path, 'r') as fh:
+            lst_data = fh.read()
 
     match = re.search('Imagebase +: (?P<imagebase>[0-9A-F]+$)', lst_data, flags=re.M)
     if not match:
