@@ -187,7 +187,10 @@ def ghidra2x64dbg():
             if row['Name'] == 'entry' or re.match(r'(?:thunk_)?FUN_[0-9a-f]{8}', row['Name']) or re.match(r'Ordinal_\d+', row['Name']):
                 continue
             stripped = row['Location'].lstrip('0')
-            hex_int = int(stripped, 16)
+            try:
+                hex_int = int(stripped, 16)
+            except ValueError:
+                continue
             label_entry = {'module': module_name,
                            'address': hex_int - int(args.imagebase, 16),
                            'manual': False,
